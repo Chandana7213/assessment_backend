@@ -20,12 +20,13 @@ def create_categories(db: Session, data:CategoryRequest, user_id: int):
     if category:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Category already exsits")
     
-    categoryInsert = Category(name=data.name)
+    categoryInsert = Category(name=data.name, created_by=user_id)
     
     try:
         db.add(categoryInsert)
         db.commit()
         db.refresh(categoryInsert)
+        return {"details": "Category created successfully" }
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(
@@ -66,12 +67,13 @@ def create_question(db:Session, data: QuestionRequest, user_id:int):
     if question:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Question already exsits")
     
-    questionInsert = Question(question= data.question, answer= data.answer, marks= data.marks, category=data.category)
+    questionInsert = Question(question= data.question, answer= data.answer, marks= data.marks,created_by=user_id, category=data.category)
     
     try:
         db.add(questionInsert)
         db.commit()
         db.refresh(questionInsert)
+        return {"details": "Question created successfully" }
     except SQLAlchemyError as e:
         db.rollback()
         raise HTTPException(

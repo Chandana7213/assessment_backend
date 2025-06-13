@@ -19,7 +19,6 @@ class User(Base):
     
     
     question = relationship('Question', foreign_keys='Question.created_by', back_populates='user')
-    category = relationship('Category', foreign_keys='Category.created_by', back_populates='user')
 
 
 

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # from fastapi.middleware.gzip import GZipMiddleware
 # from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from app.routes import auth_routes, question_routes
+from app.routes import auth_routes, question_routes, user_routes
 from app.core.config import Base, engine
 from app.models import user, question
 
@@ -44,4 +44,5 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(auth_routes.router)
 app.include_router(question_routes.router)
+app.include_router(user_routes.router)
 
