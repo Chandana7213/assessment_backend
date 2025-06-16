@@ -1,0 +1,3 @@
+# Security
+SECRET_KEY=c2go3iYtEqeGq6CrjoR7/H/piC4F+HeCbOhzW2O3
+ALGORITHM=HS256
