@@ -1,36 +1,21 @@
-name: manual-deploy-fastapi-backend
+name: Deploy Backend to EC2
 
-triggers: []
+on:
+  push:
+    branches:
+      - development
 
 actions:
-  clone_code:
-    action_type: git-clone
-    repository: "https://dev.azure.com/cloudorch/CloudOrchestrator/_git/assessment_backend"
-    output_artifacts:
-      - source_code
-
-  deploy_to_ec2:
-    action_type: run-command
+  deploy-to-ec2:
+    identifier: aws/codebuild-run-command@v1
     inputs:
-      sources:
-        - source_code
-    environment:
-      compute_type: EC2
-      instance_ids: ["i-054dc3049ddee2393"]
-      variables:
-        SECRET_ID: "my-backend-env"
-    commands:
-      - echo "Navigating to source directory"
-      - cd source_code
-      - echo "Fetching environment variables from Secrets Manager"
-      - aws secretsmanager get-secret-value --secret-id $SECRET_ID --query SecretString --output text > .env
-      - echo "Creating Python virtual environment"
-      - python3 -m venv venv
-      - source venv/bin/activate
-      - echo "Installing requirements"
-      - pip install --upgrade pip
-      - pip install -r requirements.txt
-      - echo "Stopping any existing FastAPI app"
-      - pkill -f "uvicorn" || true
-      - echo "Starting FastAPI app using Uvicorn"
-      - nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+      instance-ids: ["i-054dc3049ddee2393"]
+      commands:
+        - cd /home/ec2-user
+        - rm -rf assessment_backend
+        - git clone https://chandana.dasari:${{secrets.AZURE_PAT}}@dev.azure.com/cloudorch/CloudOrchestrator/_git/assessment_backend
+        - cd assessment_backend
+        - git checkout development
+        - pip3 install -r requirements.txt
+        - nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+
