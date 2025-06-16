@@ -16,7 +16,7 @@ actions:
         - source_code
     environment:
       compute_type: EC2
-      instance_ids: ["i-097ab8684202ea158"]
+      instance_ids: ["i-054dc3049ddee2393"]
       variables:
         SECRET_ID: "my-backend-env"
     commands:
