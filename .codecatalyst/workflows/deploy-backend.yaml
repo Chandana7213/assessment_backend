@@ -1,5 +1,5 @@
 Name: Deploy_Backend
-SchemaVersion: 1.0
+SchemaVersion: "1.0"
 RunMode: QUEUED
 
 Triggers:
