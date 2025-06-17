@@ -1,21 +1,49 @@
-name: Deploy Backend to EC2
+Name: Deploy_Backend
+SchemaVersion: 1.0
+RunMode: QUEUED
 
-on:
-  push:
-    branches:
+Triggers:
+  - Type: PUSH
+    Branches:
       - development
 
-actions:
-  deploy-to-ec2:
-    identifier: aws/codebuild-run-command@v1
-    inputs:
-      instance-ids: ["i-054dc3049ddee2393"]
-      commands:
-        - cd /home/ec2-user
-        - rm -rf assessment_backend
-        - git clone https://chandana.dasari:${{secrets.AZURE_PAT}}@dev.azure.com/cloudorch/CloudOrchestrator/_git/assessment_backend
-        - cd assessment_backend
-        - git checkout development
-        - pip3 install -r requirements.txt
-        - nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+Compute:
+  Type: EC2
+  Fleet: Linux.x86-64.Large
 
+Actions:
+  Build:
+    Identifier: aws/build@v1
+    Inputs:
+      Sources:
+        - WorkflowSource
+    Configuration:
+      Steps:
+        - Run: |
+            echo "✅ Pulling dependencies..."
+            pip install -r requirements.txt
+
+  DeployToEC2:
+    Identifier: aws/build@v1
+    DependsOn:
+      - Build
+    Configuration:
+      Steps:
+        - Run: |
+            echo "🚀 Deploying to EC2 using SSM"
+            aws ssm send-command \
+              --document-name "AWS-RunShellScript" \
+              --region us-west-2 \                # ✅ Update region
+              --instance-ids "i-0xxxxxx" \        # ✅ Update EC2 instance ID
+              --comment "Backend deployment" \
+              --parameters 'commands=[
+                "pkill -f uvicorn || true",
+                "cd /home/ec2-user",
+                "rm -rf assessment_backend",
+                "git clone https://github.com/Chandana7213/assessment_backend.git",
+                "cd assessment_backend",
+                "git checkout development",
+                "pip3 install -r requirements.txt",
+                "nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &"
+              ]' \
+              --output text
