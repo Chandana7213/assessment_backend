@@ -1,40 +1,37 @@
 Name: Deploy_Backend
-SchemaVersion: "1.0"
+SchemaVersion: 1.0
 RunMode: QUEUED
+
+Compute:
+  Type: EC2
+  Fleet: Linux.x86-64.Large
 
 Triggers:
   - Type: PUSH
     Branches:
       - development
 
-Compute:
-  Type: EC2
-  Fleet: Linux.x86-64.Large
-
 Actions:
-  Build:
+  DebugIdentity:
     Identifier: aws/build@v1
-    Inputs:
-      Sources:
-        - WorkflowSource
     Configuration:
       Steps:
         - Run: |
-            echo "✅ Pulling dependencies..."
-            pip install -r requirements.txt
+            echo "🔍 Checking identity..."
+            aws sts get-caller-identity
 
   DeployToEC2:
     Identifier: aws/build@v1
     DependsOn:
-      - Build
+      - DebugIdentity
     Configuration:
       Steps:
         - Run: |
             echo "🚀 Deploying to EC2 using SSM"
             aws ssm send-command \
               --document-name "AWS-RunShellScript" \
-              --region us-west-2 \                # ✅ Update region
-              --instance-ids "i-0xxxxxx" \        # ✅ Update EC2 instance ID
+              --region us-west-2 \
+              --instance-ids "i-054dc3049ddee2393" \
               --comment "Backend deployment" \
               --parameters 'commands=[
                 "pkill -f uvicorn || true",
